@@ -1,6 +1,7 @@
 package com.cmj.common.security;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Redis 세션 한 건 = 로그인한 사용자 한 명의 "지금 상태".
@@ -21,7 +22,8 @@ public record SessionData(
     String langCd,            // 사용 언어 (EN / SW / FR / KO) — 언어를 바꾸면 이 값도 갱신 (Q20)
     List<String> roles,
     List<ScreenAuth> screens, // 이 사용자가 쓸 수 있는 화면(메뉴)과 API 경로
-    long loginAtMillis
+    long loginAtMillis,
+    Map<String, Long> permVersions // 📘 개선안: 세션을 만들 당시 역할별 권한 버전 (PermissionVersionStore)
 ) {
     /** 화면 하나 = 메뉴 하나 + 그 화면이 부르는 API 경로 패턴 */
     public record ScreenAuth(String screenId, String upScreenId, String menuNm, String apiPath, int sortOrd) {}

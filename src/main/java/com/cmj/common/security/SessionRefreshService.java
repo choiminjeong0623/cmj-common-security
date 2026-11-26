@@ -29,7 +29,11 @@ public class SessionRefreshService {
             .orElse(false); // 로그인 안 한 사용자는 다음 로그인 때 새 권한으로 세션이 만들어짐
     }
 
-    /** 역할의 권한이 바뀜 → 그 역할을 가진 사용자 전체 */
+    /**
+     * 역할의 권한이 바뀜 → 그 역할을 가진 사용자 전체
+     * 📘 개선안에서는 쓰지 않음: 역할 정의 변경은 PermissionVersionStore.bump() 만 하고,
+     *    각 사용자의 다음 요청 때 SessionAuthFilter가 그 사람 세션만 다시 만든다 (대상이 수백 명이어도 일괄 작업 없음)
+     */
     public int refreshUsersByRole(String roleId) {
         return refreshAll(permissions.findUserIdsByRole(roleId));
     }

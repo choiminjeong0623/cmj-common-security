@@ -13,10 +13,13 @@ public class SessionBuilder {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final PermissionRepository permissions;
+    private final PermissionVersionStore versions;
 
-    public SessionBuilder(NamedParameterJdbcTemplate jdbc, PermissionRepository permissions) {
+    public SessionBuilder(NamedParameterJdbcTemplate jdbc, PermissionRepository permissions,
+                          PermissionVersionStore versions) {
         this.jdbc = jdbc;
         this.permissions = permissions;
+        this.versions = versions;
     }
 
     public SessionData build(String userId, String sid, long loginAtMillis) {
@@ -26,6 +29,7 @@ public class SessionBuilder {
              WHERE USER_ID = :u""", Map.of("u", userId), (rs, i) -> {
             String userType = rs.getString("USER_TYPE");
             String portalCd = portalOf(userType);
+            var roleIds = permissions.findRoleIds(userId);
             return new SessionData(
                 sid,
                 rs.getString("USER_ID"),
@@ -36,9 +40,10 @@ public class SessionBuilder {
                 rs.getString("ORG_CD"),
                 rs.getString("DEPT_CD"),
                 rs.getString("LANG_CD"),
-                permissions.findRoleIds(userId),
+                roleIds,
                 permissions.findScreens(userId, portalCd),
-                loginAtMillis);
+                loginAtMillis,
+                versions.current(roleIds)); // 📘 개선안: 만들 당시의 권한 버전을 같이 저장
         });
     }
 

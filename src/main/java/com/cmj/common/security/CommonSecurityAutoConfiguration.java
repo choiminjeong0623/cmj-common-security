@@ -1,6 +1,7 @@
 package com.cmj.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -43,6 +44,12 @@ public class CommonSecurityAutoConfiguration {
         return new SessionStore(redis, MAPPER, props.sessionIdleTimeout());
     }
 
+    /** 📘 개선안: 역할별 권한 버전 (perm_ver:{roleId}) */
+    @Bean
+    PermissionVersionStore permissionVersionStore(StringRedisTemplate redis) {
+        return new PermissionVersionStore(redis);
+    }
+
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(name = "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate") // auth-server처럼 DB가 없는 서비스 보호
     @ConditionalOnBean(NamedParameterJdbcTemplate.class)
@@ -54,8 +61,9 @@ public class CommonSecurityAutoConfiguration {
         }
 
         @Bean
-        SessionBuilder sessionBuilder(NamedParameterJdbcTemplate jdbc, PermissionRepository permissions) {
-            return new SessionBuilder(jdbc, permissions);
+        SessionBuilder sessionBuilder(NamedParameterJdbcTemplate jdbc, PermissionRepository permissions,
+                                      PermissionVersionStore versions) {
+            return new SessionBuilder(jdbc, permissions, versions);
         }
 
         @Bean
@@ -77,13 +85,15 @@ public class CommonSecurityAutoConfiguration {
 
         @Bean
         SecurityFilterChain commonSecurityFilterChain(HttpSecurity http, JwtDecoder commonJwtDecoder,
-                                                      SessionStore store, CommonSecurityProperties props) throws Exception {
+                                                      SessionStore store, CommonSecurityProperties props,
+                                                      PermissionVersionStore versions,
+                                                      ObjectProvider<SessionRefreshService> refresh) throws Exception {
             http.csrf(c -> c.disable())                       // 쿠키 세션이 아니라 헤더의 JWT를 쓰므로
                 .httpBasic(b -> b.disable())
                 .formLogin(f -> f.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 서버 메모리 세션은 안 씀(Redis 세션만)
                 .authorizeHttpRequests(a -> a.anyRequest().permitAll()) // 실제 판단은 SessionAuthFilter가 함
-                .addFilterBefore(new SessionAuthFilter(commonJwtDecoder, store, props, MAPPER),
+                .addFilterBefore(new SessionAuthFilter(commonJwtDecoder, store, props, MAPPER, versions, refresh),
                     AnonymousAuthenticationFilter.class);
             return http.build();
         }
