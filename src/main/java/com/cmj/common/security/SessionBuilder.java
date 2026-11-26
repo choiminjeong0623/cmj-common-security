@@ -43,7 +43,7 @@ public class SessionBuilder {
                 roleIds,
                 permissions.findScreens(userId, portalCd),
                 loginAtMillis,
-                versions.current(roleIds)); // 📘 개선안: 만들 당시의 권한 버전을 같이 저장
+                versions.current(roleIds)); // 🟩 만들 당시의 권한 버전을 같이 저장
         });
     }
 

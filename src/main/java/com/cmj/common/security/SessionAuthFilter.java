@@ -29,7 +29,7 @@ import java.util.Optional;
  *   ② 세션 ID가 다르다      → 401 DUPLICATE_LOGIN   (다른 곳에서 새로 로그인, 다음 클릭에 바로 튕김 ✅ Q5)
  *   ③ 화면·API 권한이 없다  → 403 FORBIDDEN         (주소를 직접 쳐도 서버가 막음 ✅ Q7)
  *   ④ 통과                 → 세션 유효 시간 연장 + SecurityUtil로 꺼낼 수 있게 등록
- *   (📘 개선안) ②와 ③ 사이: 세션의 권한 버전이 현재와 다르면 이 사용자 세션만 다시 만든 뒤 ③을 검사
+ *   (🟩 본인 기억(납세자 쪽 Redis 부하 대응, 키 구조는 예시)) ②와 ③ 사이: 세션의 권한 버전이 현재와 다르면 이 사용자 세션만 다시 만든 뒤 ③을 검사
  *
  * ✅ 권한 검사는 gateway가 아니라 각 업무 서비스의 common.security에서 (Q1)
  * 🟩 비교 기준은 로그인 때 세션에 넣어 둔 화면 목록 (Q7)
@@ -83,7 +83,7 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             reject(res, 401, "DUPLICATE_LOGIN", "다른 곳에서 로그인되어 로그아웃되었습니다.");
             return;
         }
-        // 📘 개선안 (실제로 한 일이 아님): 역할 정의가 바뀌어 권한 버전이 올라갔으면, 이 사용자 세션만 지금 다시 만든다
+        // 🟩 본인 기억(납세자 쪽 Redis 부하 대응, 키 구조는 예시): 이미 로그인한 사용자의 "다음 요청" 때 비교 (✅ 비교 시점 2026-11-26 확인). 역할 정의가 바뀌어 권한 버전이 올라갔으면, 이 사용자 세션만 지금 다시 만든다
         //    → 역할 변경 때 그 역할을 가진 사용자 전체를 한꺼번에 갱신하지 않아도 됨 (게으른 갱신)
         if (!versions.isCurrent(session.get().permVersions(), session.get().roles())) {
             SessionRefreshService refresher = refresh.getIfAvailable();

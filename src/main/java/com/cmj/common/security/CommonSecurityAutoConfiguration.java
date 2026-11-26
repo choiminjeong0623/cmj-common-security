@@ -44,7 +44,7 @@ public class CommonSecurityAutoConfiguration {
         return new SessionStore(redis, MAPPER, props.sessionIdleTimeout());
     }
 
-    /** 📘 개선안: 역할별 권한 버전 (perm_ver:{roleId}) */
+    /** 🟩 본인 기억(납세자 쪽 Redis 부하 대응, 키 구조는 예시): 역할별 권한 버전 (perm_ver:{roleId}) */
     @Bean
     PermissionVersionStore permissionVersionStore(StringRedisTemplate redis) {
         return new PermissionVersionStore(redis);

@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * 📘 개선안 (실제로 한 일이 아님) — 역할별 "권한 버전"
+ * 🟩 본인 기억(납세자 쪽 Redis 부하 대응, 키 구조는 예시) — 역할별 "권한 버전"
+ * ✅ 계기: 납세자 쪽에서 권한 변경 때 ELK에 Redis 부하·실패 오류, TRA ICT에서 메일로 전달받음 (2026-11-26)
+ * ✅ 비교 시점: 이미 로그인한 사용자가 다음에 요청할 때. 다르면 사용자 역할을 다시 조회해 Redis 세션에 set
+ * ⚠️ 키 이름(perm_ver:)·INCR·MGET 사용은 예시
  *
  *   Redis 키: perm_ver:{roleId} → 숫자 (없으면 0)
  *

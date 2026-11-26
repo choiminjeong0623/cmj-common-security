@@ -23,7 +23,7 @@ public record SessionData(
     List<String> roles,
     List<ScreenAuth> screens, // 이 사용자가 쓸 수 있는 화면(메뉴)과 API 경로
     long loginAtMillis,
-    Map<String, Long> permVersions // 📘 개선안: 세션을 만들 당시 역할별 권한 버전 (PermissionVersionStore)
+    Map<String, Long> permVersions // 🟩 본인 기억(납세자 쪽 Redis 부하 대응, 키 구조는 예시): 세션을 만들 당시 역할별 권한 버전 (PermissionVersionStore)
 ) {
     /** 화면 하나 = 메뉴 하나 + 그 화면이 부르는 API 경로 패턴 */
     public record ScreenAuth(String screenId, String upScreenId, String menuNm, String apiPath, int sortOrd) {}
