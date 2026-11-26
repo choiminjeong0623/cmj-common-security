@@ -6,7 +6,7 @@
 ## 역할
 공통 보안 라이브러리(jar). Redis 세션(session:{userId}) 저장·조회, 세션 생성(SessionBuilder), 권한 조회(EXISTS), 요청마다 세션·중복 로그인·화면 권한을 검사하는 SessionAuthFilter. 각 업무 서비스가 의존성으로 가져다 씀.
 
-역할 변경 알림 개선 (✅ 공지 전환 / 🟩 관리자 화면·발송 대기 로직 참여 / 📘 나머지 개선안)
+역할 변경 알림 개선 (✅ 공지 전환·부여/회수 분기·영향 범위 표시·50명 이상 승인·발송 대기 테이블+배치 / 📘 중복 차단·발송 중지 스위치·권한 버전)
 - 📘 권한 버전(`PermissionVersionStore`, Redis `perm_ver:{roleId}`): 버전이 바뀐 사용자만 다음 요청 때 세션을 다시 만듦. 바뀐 jar는 `./gradlew publishToMavenLocal`로 다시 배포해야 다른 서비스에 반영됨
 
 ## 빌드
