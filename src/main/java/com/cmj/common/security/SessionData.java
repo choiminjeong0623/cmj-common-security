@@ -13,7 +13,7 @@ public record SessionData(
     String sid,               // 이번 로그인의 세션 ID. 새로 로그인하면 바뀜 → 중복 로그인 판정에 사용 (Q5)
     String userId,
     String loginId,
-    String userType,          // STAFF(TRA 직원) / TAXPAYER / AGENT(세무 대리인) / AGENCY(기관 사용자)
+    String userType,          // STAFF(cmj-choiminjeong 직원) / TAXPAYER / AGENT(세무 대리인) / AGENCY(기관 사용자)
     String portalCd,          // IPT(내부 직원) / OPT(기관) / EPT(납세자) — Q20
     String tin,               // 납세자 고유번호
     String orgCd,             // 소속 기관
