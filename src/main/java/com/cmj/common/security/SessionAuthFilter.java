@@ -38,6 +38,9 @@ import java.util.Optional;
  */
 public class SessionAuthFilter extends OncePerRequestFilter {
 
+    /** 비로그인 허용 API 표시 (✅ 규칙은 본인 기억, 검사 위치는 🟩) */
+    static final String NON_LOGIN_SUFFIX = "_NONLGN";
+
     private final JwtDecoder jwtDecoder;
     private final SessionStore store;
     private final CommonSecurityProperties props;
@@ -71,7 +74,11 @@ public class SessionAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (matchesAny(props.publicPaths(), path)) {
+        // 비로그인 허용 API: 주소 끝에 _NONLGN 을 붙이는 규칙 (✅ 규칙 자체는 본인 기억 2026-11-27)
+        //   🟩 이 검사가 공통 보안 필터에 있었던 것 같다고 기억(정확하지 않음) — 위치는 예시
+        //   매크로 장애 때는 문제의 API 주소에서 _NONLGN 을 빼서 로그인 필수로 바꿨다
+        //   📘 주의: 이름만 바꾸면 누구나 비로그인 API를 열 수 있음 → 오픈 전 목록 점검·검토 절차가 필요(회고)
+        if (path.endsWith(NON_LOGIN_SUFFIX) || matchesAny(props.publicPaths(), path)) {
             chain.doFilter(req, res);
             return;
         }
