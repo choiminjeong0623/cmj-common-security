@@ -6,8 +6,10 @@
 ## 역할
 공통 보안 라이브러리(jar). Redis 세션(session:{userId}) 저장·조회, 세션 생성(SessionBuilder), 권한 조회(EXISTS), 요청마다 세션·중복 로그인·화면 권한을 검사하는 SessionAuthFilter. 각 업무 서비스가 의존성으로 가져다 씀.
 
+- ✅ 매크로 장애 대응 — `SessionAuthFilter` 맨 앞(⓪)에 Python User-Agent 차단 규칙 (본인 구현, 비교 방식·목록은 ⚠️ 예시, 설정 `cmj.common-security.blocked-user-agents`). 비로그인 경로 통과(publicPaths)보다 **앞**에 있어야 비로그인 API를 노린 매크로도 걸러짐. 호출 횟수 제한은 이 라이브러리가 아니라 **cmj-gateway**에서 함
+
 역할 변경 알림 개선 (✅ 공지 전환·부여/회수 분기·영향 범위 표시·50명 이상 승인·발송 대기 테이블+배치 / 🟩 권한 버전(납세자 쪽 Redis 부하 대응) / 📘 중복 차단·발송 중지 스위치)
-- 🟩 권한 버전 — 납세자 쪽 Redis 부하(ELK, TRA ICT 메일 전달) 대응으로 본인이 고쳤다고 기억, 키 구조는 예시 (`PermissionVersionStore`, Redis `perm_ver:{roleId}`): 버전이 바뀐 사용자만 다음 요청 때 세션을 다시 만듦. 바뀐 jar는 `./gradlew publishToMavenLocal`로 다시 배포해야 다른 서비스에 반영됨
+- 🟩 권한 버전 — 납세자 쪽 Redis 부하(ELK, 고객사 ICT 메일 전달) 대응으로 본인이 고쳤다고 기억, 키 구조는 예시 (`PermissionVersionStore`, Redis `perm_ver:{roleId}`): 버전이 바뀐 사용자만 다음 요청 때 세션을 다시 만듦. 바뀐 jar를 다시 배포하고 업무 서비스도 재배포해야 반영됨
 
 ## 빌드
 ```bash
@@ -34,4 +36,4 @@
 | cmj-frontend-common | 공통 화면 코드 |
 | cmj-frontend-service | 업무 화면 코드 |
 
-⚠️ 공통 라이브러리의 실제 배포 방식(사내 패키지 저장소 등)은 확인되지 않아, 예시는 mavenLocal 을 씁니다.
+✅ 실제로는 라이브러리로 묶어 배포하는 구조가 **기존에 있었고**, JAR를 **GitLab 패키지 저장소**에 올려 각 업무 서비스가 의존성으로 가져다 씀. 라이브러리를 고치면 **업무 서비스도 다시 배포**해야 반영됨 (2026-11-27 확인). 이 예시는 로컬에서 돌려 보기 쉽게 mavenLocal 을 씁니다.

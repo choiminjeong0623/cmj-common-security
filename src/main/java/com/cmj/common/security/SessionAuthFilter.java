@@ -25,6 +25,7 @@ import java.util.Optional;
  * 업무 서비스에 들어오는 모든 요청 앞에서 한 번 실행되는 공통 검사.
  * "요청마다 Redis 세션을 한 번 꺼내서" 아래 네 가지를 한 자리에서 처리한다.
  *
+ *   ⓪ 매크로 User-Agent    → 403 BLOCKED_CLIENT    (매크로 장애 대응, ✅ 본인 구현 / 비교 방식 ⚠️ 예시)
  *   ① 세션이 없다           → 401 SESSION_EXPIRED   (미사용 자동 로그아웃, ✅ Q16)
  *   ② 세션 ID가 다르다      → 401 DUPLICATE_LOGIN   (다른 곳에서 새로 로그인, 다음 클릭에 바로 튕김 ✅ Q5)
  *   ③ 화면·API 권한이 없다  → 403 FORBIDDEN         (주소를 직접 쳐도 서버가 막음 ✅ Q7)
@@ -60,6 +61,16 @@ public class SessionAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
         String path = req.getRequestURI();
+
+        // ⓪ 매크로 차단 (✅ 매크로 장애 때 본인이 이 필터에 Python 요청 차단 규칙을 추가 / ⚠️ 비교 방식은 예시)
+        //    반드시 publicPaths 통과보다 "앞"에 둔다. 매크로가 노린 API는 원래 비로그인 API였기 때문에,
+        //    이 검사를 아래 줄 뒤에 두면 비로그인 경로로 들어온 매크로 요청은 검사 없이 지나간다.
+        //    User-Agent는 바꿀 수 있으므로 급한 조치일 뿐, 근본 해결은 로그인 필수 + gateway 호출 횟수 제한.
+        if (isBlockedUserAgent(req.getHeader("User-Agent"))) {
+            reject(res, 403, "BLOCKED_CLIENT", "허용되지 않은 요청입니다.");
+            return;
+        }
+
         if (matchesAny(props.publicPaths(), path)) {
             chain.doFilter(req, res);
             return;
@@ -118,6 +129,12 @@ public class SessionAuthFilter extends OncePerRequestFilter {
     private boolean hasScreen(SessionData session, String path) {
         return session.screens().stream()
             .anyMatch(s -> s.apiPath() != null && matcher.match(s.apiPath(), path));
+    }
+
+    private boolean isBlockedUserAgent(String userAgent) {
+        if (userAgent == null) return false;
+        String ua = userAgent.toLowerCase();
+        return props.blockedUserAgents().stream().anyMatch(b -> ua.contains(b.toLowerCase()));
     }
 
     private boolean matchesAny(List<String> patterns, String path) {

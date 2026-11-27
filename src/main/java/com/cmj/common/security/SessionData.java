@@ -19,7 +19,7 @@ public record SessionData(
     String tin,               // 납세자 고유번호
     String orgCd,             // 소속 기관
     String deptCd,            // 소속 부서
-    String langCd,            // 사용 언어 (EN / SW / FR / KO) — 언어를 바꾸면 이 값도 갱신 (Q20)
+    String langCd,            // 사용 언어 (EN / LO(현지어) / FR / KO) — 언어를 바꾸면 이 값도 갱신 (Q20)
     List<String> roles,
     List<ScreenAuth> screens, // 이 사용자가 쓸 수 있는 화면(메뉴)과 API 경로
     long loginAtMillis,
